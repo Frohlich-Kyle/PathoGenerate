@@ -1,0 +1,276 @@
+<!-- 
+Author: Kyle Frohlich
+Date: 21Nov2024
+Name: PathoGenerate
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- include stuff to make the project work -->
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathoGenerate</title>
+    <link rel="stylesheet" href="PathoGenerateStyle.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="PathoGenerateCode.js"></script>
+</head>
+
+<!-- Quick navigation buttons for the website -->
+<nav class="navigation">
+    <a href="#input">Input Parameters</a>
+    <a href="#visualization">Data Visualization</a>
+    <a href="#report">Report Generation</a>
+    <a href="#searchup">Scientific Look Up</a>
+</nav>
+
+
+<!-- The main city graphic on the right side -->
+<div>
+    <img id="cityMenu" src="https://static.vecteezy.com/system/resources/previews/022/534/271/non_2x/city-background-illustration-black-free-png.png"/>
+    <div class="container">
+        <div class="filling" id="fillingDiv"></div>
+    </div>    
+</div>
+
+
+<body>
+
+    <!-- Title card area stuff -->
+    <h1>PathoGenerate</h1>
+    <p>PathoGenerate is a tool designed around providing anyone with the power of visualizing infection patterns</p>
+    <p>In addition it comes with the capability of helping you find relevent scientific information about pathogen is general!</p>
+    <p>Developed by Kyle Frohlich</p>
+
+
+    <!-- Entire part of gathering the 4 inputs and generating the website data needed -->
+    <section id="input">
+
+        <h2>Input Parameters</h2>
+
+        <form id="data-input-form" onsubmit="submitData(event)">
+
+            <!-- input for starting infection group -->
+            <label for="initial-infections"><b>Starting Number of Infected Individuals:</b></label>
+            <input type="number" id="initial-infections" name="initial-infections" min="1" required>
+            <br>
+            <label for="initial-infections">When considering this number, think about how infected people might show up. A "patient 0" would be a single person.</label>
+            <br>
+            <label for="initial-infections">On a slightly larger scale, one person sick on a bus might get others sick. Here 5-10 might be a good number.</label>
+            <br>
+            <label for="initial-infections">Another more serious example is on an airplane flight. Your number could be 50 and above!</label>
+            <br>
+            <label for="initial-infections"></label>
+            <br><br>
+
+            <!-- input for total population -->
+            <label for="population"><b>Population:</b></label>
+            <input type="number" id="population" name="population" min="1" required>
+            <br>
+            <label for="population">This is how big you want your total population to be. Such as 30,000 for a small city.</label>
+            <br>
+            <label for="population">PathoGenerate works best on smaller scales as large scale has many more variables</label>
+            <br>
+            <label for="population">that are harder to predict more accutely.</label>
+            <br>
+            <br>
+
+            <!-- input for the r0 -->
+            <label for="r0"><b>Basic Reproduction Number (R0 or R-naught):</b></label>
+            <input type="number" id="r0" name="r0" min="0.1" step="0.1" required>
+            <br>
+            <label for="r0">R0 is a simple value that represents how many people an infected person will infect.</label>
+            <br>
+            <label for="r0">An R0 of 1 means, on average, each sick person will infect 1 other person.</label>
+            <br>
+            <a href="https://globalhealth.harvard.edu/understanding-predictions-what-is-r-naught/" target="_blank" rel="noopener noreferrer">
+                A deeper dive on R0 / R-naught
+            </a>
+            <br>
+            <br>
+            <label for="r0">Some examples of R0's of disease you may have heard of...</label>
+            <br>
+            <label for="r0">Flu R0: 1-2</label>
+            <br>
+            <label for="r0">Polio R0: 5-7</label>
+            <br>
+            <label for="r0">Measles R0: 12-14</label>
+            <br>
+            <br>
+            <br>
+
+            <!-- input for the amount of infection cycles to run the thing -->
+            <label for="prediction range"><b>Prediction Range (Infection Cycles):</b></label>
+            <input type="number" id="prediction-range" name="prediction-range" min="1" required>
+            <br>
+            <label for="prediction range">This is where you decide how long you want the infection to run for.</label>
+            <br>
+            <label for="prediction range">An infection cycles is the time it takes for some to get infected, develop the disease, and recover.</label>
+            <br>
+            <br><br>
+
+            <!-- input for vaccinated percent -->
+            <label for="vaccinated"><b>Percentage of Vaccinated Individuals (0-100):</b></label>
+            <input type="number" id="vaccinated" name="vaccinated" min="0" max="100" step="0.1" required>
+            <br>
+            <label for="vaccinated">This number is meant to track how many people may be resistant.</label>
+            <br>
+            <label for="vaccinated">The higher the number is, the more people that have been vaccinated against it.</label>
+            <br>
+            <label for="vaccinated">For example, it is approximated 34.7% of the population is vaccinated against the common flu</label>
+            <br>
+            <br><br>
+            <button type="submit">Generate Data</button>
+
+        </form>
+
+    </section>
+
+    
+
+    <!-- Where the generated data is utilized in the graphics and table -->
+    <section id="visualization">
+
+        <h2>Data Visualization</h2>
+
+
+        <!-- line graph stuff -->
+        <div id="lineGraph">
+
+            <h3>Line Graph Trends</h3>
+            <!-- opens graph which then populates it -->
+            <div class="icon" onclick="openLineModal()">
+                <img src="https://cdn-icons-png.flaticon.com/512/1270/1270360.png" alt="Click to Open Graph" style="width: 50px;">
+            </div>
+        
+            <div class="modal" id="lineGraphModal" style="display: none;">
+
+                <div class="modal-content">
+                    <span class="close-btn" onclick="closeLineModal()">X</span>
+                    <canvas id="lineGraphCanvas"></canvas>
+                </div>
+
+            </div>
+
+            <p>The Line Graph Trends represent the expected number <br> of individuals that will be infected after each day.</p>
+
+        </div>
+
+        <!-- pie chart stuff -->
+        <div id="pieChart">
+
+            <h3>Pie Chart Distribution</h3>
+            <!-- opens pie which then populates it -->
+            <div class="icon" onclick="openPieModal()">
+                <img src="https://cdn-icons-png.flaticon.com/512/167/167485.png" alt="Click to Open Pie Chart" style="width: 50px;">
+            </div>
+        
+            <div class="modal" id="pieChartModal" style="display: none;">
+
+                <div class="modal-content">
+                    <span class="close-btn" onclick="closePieModal()">X</span>
+                    <canvas id="pieChartCanvas"></canvas>
+                </div>
+
+            </div>
+
+            <p>The Pie Chart Distribution shows the final amount <br> of infected individuals predicted by the final day.</p>
+
+        </div>
+
+        <!-- table stuff -->
+        <div id="tableForm">
+
+            <h3>Raw Data Table</h3>
+
+            <div class="icon" onclick="openTableModal()">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzazhyXwHIfgqhCzHt0L_GZWhqqPkJRBIVlQ&s" alt="Click to Open Graph" style="width: 50px;">
+            </div>
+
+            <div class="modal" id="tableFormModal" style="display: none;">
+
+                <div class="modal-content">
+
+                    <span class="close-btn" onclick="closeTableModal()">X</span>
+                    <canvas id="tableFormCanvas"></canvas>
+                    <!-- base area the function needs to populate -->
+                    <table id="tableFormTable">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Number of Infected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- this needs to be here so the function can add the blocks to it -->
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+
+            <p>The Raw Data Table displays data for each day in <br> an itemized format.</p>
+
+        </div>
+    </section>
+
+    <br> <br>
+
+
+    <!-- The portion where the report is generated (probably wont be implemented in time) -->
+    <section id="report">
+
+        <h2>Report Generation</h2>
+        <label for="report">Generate and download detailed reports based on the simulation data.</label>
+        <br>
+        <label for="report">This will include the graphics generated and raw data.</label>
+        <br>
+        <button id="generate-report" onclick="generateReport()">Generate Report</button>
+
+    </section>
+
+
+
+    <!-- The searchup functionality to find scientific stuff on scientific websites -->
+    <section id="searchup">
+
+        <h2>Scientific Look Up</h2>
+        
+        <form id="searchup">
+            <label for="searchup"><b>Topic to Look For</b></label>
+            <input type="words" id="searchinput" name="searchup" required>
+            <br>
+            <label for="searchup">This tool is simply meant to help find scientific resources applicable to your topic.</label>
+            <br>
+            <label for="searchup">If you don't want to use it specifically, below are the websites used by the tool to search for relevant results</label>
+            <br>
+            <button id="searchinput" onclick="searchMayo()">Search Mayo Clinic</button>
+            <button id="searchinput" onclick="searchNCBI()">Search NCBI</button>
+            <button id="searchinput" onclick="searchGoogle()">Search Google Scholar</button>
+            <br>
+        </form>
+
+        <a target="_blank" rel="noopener noreferrer"  href="https://www.mayoclinic.org">
+            Mayo Clinic
+        </a>
+        <br>
+
+        <a target="_blank" rel="noopener noreferrer" href="https://www.ncbi.nlm.nih.gov">
+            National Library of Medicine
+        </a>
+        <br>
+
+        <a target="_blank" rel="noopener noreferrer" href="https://scholar.google.com">
+            Google Scholar
+        </a>
+        <br>
+        <br>
+        <br>
+    </section>
+
+</body>
+</html>
